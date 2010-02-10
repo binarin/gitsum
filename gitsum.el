@@ -127,6 +127,7 @@ A numeric argument serves as a repeat count."
       (insert-buffer-substring patch-buffer)
       (write-file temp-file-name))
     (with-current-buffer buffer
+      (erase-buffer)
       (setq default-directory dir)
       (process-file "git" temp-file-name t t "--no-pager" "apply" "--stat")
       (goto-char (point-min))
