@@ -101,12 +101,19 @@ A numeric argument serves as a repeat count."
 (defun gitsum-commit ()
   "Commit the patch as-is, asking for a commit message."
   (interactive)
-  (utf8-shell-command-on-region (point-min) (point-max) "git apply --check --cached")
+  ;; (utf8-shell-command-on-region (point-min) (point-max) "git apply --check --cached")
   (let ((buffer (get-buffer-create "*gitsum-commit*"))
-        (dir default-directory))
-    (utf8-shell-command-on-region (point-min) (point-max) "(git diff --cached && cat) | git apply --stat" buffer)
+        (dir default-directory)
+        (patch-buffer (current-buffer))
+        (temp-buffer (get-buffer-create "*gitsum-temporary-buffer*"))
+        (temp-file-name (make-temp-file "gitsum")))
+    (process-file "git" nil temp-buffer t "--no-pager" "diff" "--cached")
+    (with-current-buffer temp-buffer
+      (insert-buffer-substring patch-buffer)
+      (write-file temp-file-name))
     (with-current-buffer buffer
       (setq default-directory dir)
+      (process-file "git" temp-file-name t t "--no-pager" "apply" "--stat")
       (goto-char (point-min))
       (insert "\n")
       (while (re-search-forward "^" nil t)
