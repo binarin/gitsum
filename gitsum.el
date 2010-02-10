@@ -174,10 +174,8 @@ A numeric argument serves as a repeat count."
   "Perform the actual commit using the current buffer as log message."
   (interactive)
   (with-current-buffer log-edit-parent-buffer
-    (utf8-shell-command-on-region (point-min) (point-max)
-                             "git apply --cached"))
-  (utf8-shell-command-on-region (point-min) (point-max)
-                           "git commit -F- --cleanup=strip")
+    (buffer->process-file "git" nil nil "--no-pager" "apply" "--cached"))
+  (buffer->process-file "git" nil nil "--no-pager" "commit" "-F-" "--cleanup=strip")
   (with-current-buffer log-edit-parent-buffer
     (gitsum-refresh)))
 
