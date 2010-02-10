@@ -22,6 +22,21 @@ if there is already one that displays the same directory."
 	(coding-system-for-write 'utf-8-unix))
     (apply 'shell-command-on-region args)))
 
+(defun buffer->process-file (program &optional output-buffer display &rest args)
+  "Stores current buffer to temporary file, and passes this file
+to process-file. In this way we can send buffer contents to
+commands on other hosts (via tramp)"
+  (let ((temp-buffer (get-buffer-create "*buffer-process-file-temp*"))
+        (temp-file-name (make-temp-file "buffer-process-file-temp"))
+        (current-buffer (current-buffer)))
+    (unwind-protect
+        (progn 
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (insert-buffer-substring current-buffer)
+            (write-file temp-file-name))
+          (apply #'process-file program temp-file-name output-buffer display args))
+      (delete-file temp-file-name))))
 
 (easy-mmode-defmap gitsum-diff-mode-shared-map
   '(("A" . gitsum-amend)
